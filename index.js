@@ -40,6 +40,6 @@ app.get('/', (req, res) => {
     .catch((error) => res.status(400).json(error));
 });
 
-app.listen(3001, () => {
+app.listen(process.env.PORT, () => {
   console.log('Listening on port 3001');
 })
