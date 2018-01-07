@@ -1,7 +1,18 @@
 const app = require('express')();
 const MetaInspector = require('node-metainspector');
+const websiteLogo = require('website-logo');
 
 app.use(require('cors')());
+
+function getLogo(url) {
+  return new Promise((resolve, reject) => {
+    websiteLogo(url, function(error, images) {
+      if (error) return reject(error);
+      return resolve(images);
+    });
+  });
+}
+
 
 function getMetaData(url) {
   return new Promise((resolve, reject) => {
@@ -35,11 +46,19 @@ function getMetaData(url) {
 }
 
 app.get('/', (req, res) => {
-  getMetaData(req.query.url)
-    .then((data) => res.json(data))
-    .catch((error) => res.status(400).json(error));
+  Promise.all([
+    getMetaData(req.query.url),
+    getLogo(req.query.url)
+  ])
+  .then(([logoInfo, metaInfo]) => res.json({ ...metaInfo, ...logoInfo }))
+  .catch((error) => res.status(400).json(error));
 });
 
 app.listen(process.env.PORT, () => {
-  console.log('Listening on port 3001');
+  console.log('Listening on port ' + process.env.PORT);
 })
+
+module.exports = {
+  getLogo,
+  getMetaData
+};
